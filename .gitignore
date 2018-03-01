@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+/.vs
+/ewin/.vs/ewin/v15
+/ewin/ewin/x64/Debug
+*.vcxproj
+*.filters
+*.user
+/ewin/x64/Debug
+*.sln
