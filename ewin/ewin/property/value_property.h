@@ -112,6 +112,17 @@ namespace ewin::property{
 			return *this;
 		}
 
+		template <typename unused_type = value_type>
+		EWIN_VAL_PROP_ENABLE_GENERIC((std::is_pointer_v<unused_type> &&
+			!std::is_fundamental_v<std::remove_pointer_t<unused_type>>), value_type) operator ->() const{
+			return operator value_type();
+		}
+
+		template <typename unused_type = value_type>
+		EWIN_VAL_PROP_ENABLE_GENERIC(std::is_pointer_v<unused_type>, std::remove_pointer_t<unused_type>) &operator *() const{
+			return *operator value_type();
+		}
+
 		EWIN_VAL_PROP_RELATIONAL_OPERATORS;
 		EWIN_VAL_PROP_NUMERIC_OPERATORS(value);
 
@@ -124,13 +135,13 @@ namespace ewin::property{
 
 		value() = default;
 
-		explicit value(managed_type::callback_type callback)
+		explicit value(typename managed_type::callback_type callback)
 			: managed_type(callback){}
 
 		explicit value(value_type *ref)
 			: ref_(ref){}
 
-		value(managed_type::callback_type callback, value_type *ref)
+		value(typename managed_type::callback_type callback, value_type *ref)
 			: managed_type(callback), ref_(ref){}
 
 		value(value &&target)
@@ -149,7 +160,7 @@ namespace ewin::property{
 			ref_ = ref;
 		}
 
-		void set_manager_(managed_type::callback_type callback, value_type *ref){
+		void set_manager_(typename managed_type::callback_type callback, value_type *ref){
 			managed_type::set_manager_(callback);
 			set_ref_(ref);
 		}
