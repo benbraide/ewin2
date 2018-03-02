@@ -14,13 +14,19 @@
 #define EWIN_PROP_HAS_CALLBACK (object::callback_ != nullptr)
 #define EWIN_PROP_REQUIRE_CALLBACK if (!EWIN_PROP_HAS_CALLBACK) throw common::error::property_not_initialized;
 
-#define EWIN_PROP_CHECK_ACCESS(a) if (access != object::access_type::nil && !EWIN_IS(access, a)) throw common::error::property_access_violation;
-
 #define EWIN_PROP_REF_CALL(v, a) object::callback_(EWIN_PROP_PTR_PTR(this), EWIN_PROP_REF_PTR(v), a)
 #define EWIN_PROP_PTR_CALL(v, a) object::callback_(EWIN_PROP_PTR_PTR(this), EWIN_PROP_PTR_PTR(v), a)
 
-#define EWIN_PROP_ALERT(a) EWIN_PROP_PTR_CALL(nullptr, a);
+#define EWIN_PROP_ALERT(a) EWIN_PROP_PTR_CALL(nullptr, (a | object::access_type::alert));
 #define EWIN_PROP_SAFE_ALERT(a) if (EWIN_PROP_HAS_CALLBACK) EWIN_PROP_ALERT(a);
+
+#define EWIN_PROP_VALIDATE(a) EWIN_PROP_PTR_CALL(nullptr, (a | object::access_type::validate));
+#define EWIN_PROP_SAFE_VALIDATE(a) if (EWIN_PROP_HAS_CALLBACK) EWIN_PROP_VALIDATE(a);
+
+#define EWIN_PROP_CHECK_ACCESS(a)\
+if (access != object::access_type::nil && !EWIN_IS(access, a))\
+	throw common::error::property_access_violation;\
+EWIN_PROP_SAFE_VALIDATE(a);
 
 #define EWIN_PROP_WRITE_VALUE(v, a)\
 	std::remove_cv_t<decltype(v)> EWIN_PROP_WRITE_VALUE_VAR((v));\
@@ -67,6 +73,8 @@ namespace ewin::property{
 			write_alt			= (1 << 0x000A),
 			increment			= (1 << 0x000B),
 			decrement			= (1 << 0x000C),
+			validate			= (1 << 0x000D),
+			alert				= (1 << 0x000E),
 		};
 
 		typedef std::function<void(void *, void *, access_type)> callback_type;
