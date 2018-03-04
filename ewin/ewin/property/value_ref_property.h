@@ -24,6 +24,10 @@ namespace ewin::property{
 			return *operator value_type *();
 		}
 
+		operator const value_type &() const{
+			return *operator value_type *();
+		}
+
 		operator value_type *() const{
 			EWIN_PROP_CHECK_ACCESS(object::access_type::read);
 			if (value_prop_type::ref_ == nullptr)
@@ -45,15 +49,16 @@ namespace ewin::property{
 			return *this;
 		}
 
-		template <typename unused_type = value_type>
-		EWIN_VAL_PROP_ENABLE_GENERIC(!std::is_fundamental_v<unused_type>, value_type) *operator ->() const{
+		value_ref &operator =(const value_ref &target){
+			return ((&target == this) ? *this : operator=(*target.operator value_type *()));
+		}
+
+		value_type *operator ->() const{
 			return operator value_type *();
 		}
 
-		EWIN_VAL_PROP_RELATIONAL_OPERATORS;
-		EWIN_VAL_PROP_NUMERIC_OPERATORS(value_ref);
-
-		EWIN_VAL_PROP_FRIENDL_OPERATORS(value_ref, access);
+		EWIN_VAL_PROP_OPERATORS(value_ref, const value_type &, value_type, access);
+		EWIN_VAL_PROP_FRIEND_OPERATORS(value_ref, const value_type &, value_type);
 
 	protected:
 		friend manager_type;

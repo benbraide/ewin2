@@ -32,18 +32,26 @@ namespace ewin::property{
 
 		template <typename target_type>
 		pointer_ref &operator =(const target_type &target){
+			return operator=(static_cast<value_type *>(target));
+		}
+
+		pointer_ref &operator =(value_type &target){
 			return operator=(&target);
 		}
 
-		pointer_ref &operator =(const value_type *target){
+		pointer_ref &operator =(value_type *target){
 			EWIN_PROP_CHECK_ACCESS(object::access_type::write);
 			if (value_prop_type::ref_ == nullptr)
 				throw common::error::property_not_initialized;
 
-			*value_prop_type::ref_ = const_cast<value_type *>(target);
+			*value_prop_type::ref_ = target;
 			EWIN_PROP_SAFE_ALERT(object::access_type::write);
 
 			return *this;
+		}
+
+		pointer_ref &operator =(const pointer_ref &target){
+			return ((&target == this) ? *this : operator=(target.operator value_type *()));
 		}
 
 		template <typename unused_type = value_type>
@@ -55,10 +63,8 @@ namespace ewin::property{
 			return *operator value_type *();
 		}
 
-		EWIN_VAL_PROP_RELATIONAL_OPERATORS;
-		EWIN_VAL_PROP_NUMERIC_OPERATORS(pointer_ref);
-
-		EWIN_VAL_PROP_FRIENDL_OPERATORS(pointer_ref, access);
+		EWIN_VAL_PROP_RELATIONAL_OPERATORS(pointer_ref, value_type *, access);
+		EWIN_VAL_PROP_FRIEND_RELATIONAL_OPERATORS(pointer_ref, value_type *);
 
 	protected:
 		friend manager_type;

@@ -5,83 +5,80 @@
 
 #include "property_object.h"
 
-#define EWIN_VAL_PROP_TMPL(n, ...) n<manager_type, unused_type, __VA_ARGS__>
+#define EWIN_VAL_PROP_TMPL(n, ...) n<manager_type, __VA_ARGS__>
 #define EWIN_VAL_PROP_ENABLE_GENERIC(t, r) std::enable_if_t<(t), r>
 #define EWIN_VAL_PROP_CHECK_UNIQUE(n, ...) (!std::is_same_v<target_type, EWIN_VAL_PROP_TMPL(n, __VA_ARGS__)>)
 
-#define EWIN_VAL_PROP_OP0(r, op)\
-template <typename target_type>\
-r operator op(const target_type &target) const{\
-	return (operator value_type() op static_cast<value_type>(target));\
+#define EWIN_VAL_PROP_OP(n, vt, r, op, ...)\
+template <typename target_type, typename unused_type = value_type>\
+EWIN_VAL_PROP_ENABLE_GENERIC(EWIN_VAL_PROP_CHECK_UNIQUE(n, unused_type, __VA_ARGS__), r)\
+operator op(const target_type &target) const{\
+	return (operator vt() op static_cast<vt>(target));\
 }
 
-#define EWIN_VAL_PROP_OP(t, r, op)\
+#define EWIN_VAL_PROP_ARITHMETIC_OP(n, vt, r, op, ...)\
+EWIN_VAL_PROP_OP(n, vt, r, op, __VA_ARGS__)\
 template <typename target_type, typename unused_type = value_type>\
-EWIN_VAL_PROP_ENABLE_GENERIC((t), r) operator op(const target_type &target) const{\
-	return (operator value_type() op static_cast<value_type>(target));\
-}
-
-#define EWIN_VAL_PROP_ARITHMETIC_OP(t, r, op)\
-EWIN_VAL_PROP_OP((t), value_type, op)\
-template <typename target_type, typename unused_type = value_type>\
-EWIN_VAL_PROP_ENABLE_GENERIC((t), r &) operator op ## =(const target_type &target){\
+EWIN_VAL_PROP_ENABLE_GENERIC(EWIN_VAL_PROP_CHECK_UNIQUE(n, unused_type, __VA_ARGS__), n) &\
+operator op ## =(const target_type &target){\
 	return (*this = (*this op target));\
 }
 
-#define EWIN_VAL_PROP_FRIEND_OP0(n, r, op, ...)\
-template <typename target_type, typename unused_type = value_type>\
-friend EWIN_VAL_PROP_ENABLE_GENERIC((EWIN_VAL_PROP_CHECK_UNIQUE(n, __VA_ARGS__)), r)\
-operator op(const target_type &left, const EWIN_VAL_PROP_TMPL(n, __VA_ARGS__) &right){\
-	return (static_cast<value_type>(left) op static_cast<value_type>(right));\
+#define EWIN_VAL_PROP_FRIEND_OP(n, vt, r, op)\
+template <typename target_type>\
+friend r operator op(const target_type &left, const n &right){\
+	return (static_cast<vt>(left) op static_cast<vt>(right));\
 }
 
-#define EWIN_VAL_PROP_FRIEND_OP(t, n, r, op, ...)\
-template <typename target_type, typename unused_type = value_type>\
-friend EWIN_VAL_PROP_ENABLE_GENERIC(((t) && EWIN_VAL_PROP_CHECK_UNIQUE(n, __VA_ARGS__)), r)\
-operator op(const target_type &left, const EWIN_VAL_PROP_TMPL(n, __VA_ARGS__) &right){\
-	return (static_cast<value_type>(left) op static_cast<value_type>(right));\
-}
+#define EWIN_VAL_PROP_RELATIONAL_OPERATORS(n, vt, ...)\
+EWIN_VAL_PROP_OP(n, vt, bool, <, __VA_ARGS__)\
+EWIN_VAL_PROP_OP(n, vt, bool, <=, __VA_ARGS__)\
+EWIN_VAL_PROP_OP(n, vt, bool, ==, __VA_ARGS__)\
+EWIN_VAL_PROP_OP(n, vt, bool, !=, __VA_ARGS__)\
+EWIN_VAL_PROP_OP(n, vt, bool, >=, __VA_ARGS__)\
+EWIN_VAL_PROP_OP(n, vt, bool, >, __VA_ARGS__)
 
-#define EWIN_VAL_PROP_RELATIONAL_OPERATORS \
-EWIN_VAL_PROP_OP0(bool, <)\
-EWIN_VAL_PROP_OP0(bool, <=)\
-EWIN_VAL_PROP_OP0(bool, ==)\
-EWIN_VAL_PROP_OP0(bool, !=)\
-EWIN_VAL_PROP_OP0(bool, >=)\
-EWIN_VAL_PROP_OP0(bool, >)
+#define EWIN_VAL_PROP_FRIEND_RELATIONAL_OPERATORS(n, vt)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, bool, <)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, bool, <=)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, bool, ==)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, bool, !=)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, bool, >=)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, bool, >)
 
-#define EWIN_VAL_PROP_NUMERIC_OPERATORS(r)\
-EWIN_VAL_PROP_ARITHMETIC_OP(std::is_arithmetic_v<unused_type>, r, +)\
-EWIN_VAL_PROP_ARITHMETIC_OP(std::is_arithmetic_v<unused_type>, r, -)\
-EWIN_VAL_PROP_ARITHMETIC_OP(std::is_arithmetic_v<unused_type>, r, *)\
-EWIN_VAL_PROP_ARITHMETIC_OP(std::is_arithmetic_v<unused_type>, r, /)\
+#define EWIN_VAL_PROP_NUMERIC_OPERATORS(n, vt, r, ...)\
+EWIN_VAL_PROP_ARITHMETIC_OP(n, vt, r, +, __VA_ARGS__)\
+EWIN_VAL_PROP_ARITHMETIC_OP(n, vt, r, -, __VA_ARGS__)\
+EWIN_VAL_PROP_ARITHMETIC_OP(n, vt, r, *, __VA_ARGS__)\
+EWIN_VAL_PROP_ARITHMETIC_OP(n, vt, r, /, __VA_ARGS__)\
 \
-EWIN_VAL_PROP_ARITHMETIC_OP(std::is_integral_v<unused_type>, r, %)\
-EWIN_VAL_PROP_ARITHMETIC_OP(std::is_integral_v<unused_type>, r, <<)\
-EWIN_VAL_PROP_ARITHMETIC_OP(std::is_integral_v<unused_type>, r, >>)\
-EWIN_VAL_PROP_ARITHMETIC_OP(std::is_integral_v<unused_type>, r, &)\
-EWIN_VAL_PROP_ARITHMETIC_OP(std::is_integral_v<unused_type>, r, |)\
-EWIN_VAL_PROP_ARITHMETIC_OP(std::is_integral_v<unused_type>, r, ^)
+EWIN_VAL_PROP_ARITHMETIC_OP(n, vt, r, %, __VA_ARGS__)\
+EWIN_VAL_PROP_ARITHMETIC_OP(n, vt, r, <<, __VA_ARGS__)\
+EWIN_VAL_PROP_ARITHMETIC_OP(n, vt, r, >>, __VA_ARGS__)\
+EWIN_VAL_PROP_ARITHMETIC_OP(n, vt, r, &, __VA_ARGS__)\
+EWIN_VAL_PROP_ARITHMETIC_OP(n, vt, r, |, __VA_ARGS__)\
+EWIN_VAL_PROP_ARITHMETIC_OP(n, vt, r, ^, __VA_ARGS__)
 
-#define EWIN_VAL_PROP_FRIENDL_OPERATORS(n, ...)\
-EWIN_VAL_PROP_FRIEND_OP0(n, bool, <, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP0(n, bool, <=, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP0(n, bool, ==, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP0(n, bool, !=, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP0(n, bool, >=, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP0(n, bool, >, __VA_ARGS__)\
+#define EWIN_VAL_PROP_FRIEND_NUMERIC_OPERATORS(n, vt, r, ...)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, r, +)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, r, -)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, r, *)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, r, /)\
 \
-EWIN_VAL_PROP_FRIEND_OP(std::is_arithmetic_v<unused_type>, n, value_type, +, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP(std::is_arithmetic_v<unused_type>, n, value_type, -, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP(std::is_arithmetic_v<unused_type>, n, value_type, *, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP(std::is_arithmetic_v<unused_type>, n, value_type, /, __VA_ARGS__)\
-\
-EWIN_VAL_PROP_FRIEND_OP(std::is_integral_v<unused_type>, n, value_type, %, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP(std::is_integral_v<unused_type>, n, value_type, <<, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP(std::is_integral_v<unused_type>, n, value_type, >>, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP(std::is_integral_v<unused_type>, n, value_type, &, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP(std::is_integral_v<unused_type>, n, value_type, |, __VA_ARGS__)\
-EWIN_VAL_PROP_FRIEND_OP(std::is_integral_v<unused_type>, n, value_type, ^, __VA_ARGS__)
+EWIN_VAL_PROP_FRIEND_OP(n, vt, r, %)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, r, <<)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, r, >>)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, r, &)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, r, |)\
+EWIN_VAL_PROP_FRIEND_OP(n, vt, r, ^)
+
+#define EWIN_VAL_PROP_OPERATORS(n, vt, r, ...)\
+EWIN_VAL_PROP_RELATIONAL_OPERATORS(n, vt, __VA_ARGS__)\
+EWIN_VAL_PROP_NUMERIC_OPERATORS(n, vt, r, __VA_ARGS__)
+
+#define EWIN_VAL_PROP_FRIEND_OPERATORS(n, vt, r)\
+EWIN_VAL_PROP_FRIEND_RELATIONAL_OPERATORS(n, vt)\
+EWIN_VAL_PROP_FRIEND_NUMERIC_OPERATORS(n, vt, r)
 
 namespace ewin::property{
 	template <class manager_type, class value_type, object::access_type access = object::access_type::nil>
@@ -125,21 +122,20 @@ namespace ewin::property{
 			return *this;
 		}
 
-		template <typename unused_type = value_type>
-		EWIN_VAL_PROP_ENABLE_GENERIC((std::is_pointer_v<unused_type> &&
-			!std::is_fundamental_v<std::remove_pointer_t<unused_type>>), value_type) operator ->() const{
+		value &operator =(const value &target){
+			return ((&target == this) ? *this : operator=(target.operator value_type()));
+		}
+
+		value_type *operator ->() const{
 			return operator value_type();
 		}
 
-		template <typename unused_type = value_type>
-		EWIN_VAL_PROP_ENABLE_GENERIC(std::is_pointer_v<unused_type>, std::remove_pointer_t<unused_type>) &operator *() const{
+		value_type &operator *() const{
 			return *operator value_type();
 		}
 
-		EWIN_VAL_PROP_RELATIONAL_OPERATORS;
-		EWIN_VAL_PROP_NUMERIC_OPERATORS(value);
-
-		EWIN_VAL_PROP_FRIENDL_OPERATORS(value, access);
+		EWIN_VAL_PROP_OPERATORS(value, value_type, value_type, access);
+		EWIN_VAL_PROP_FRIEND_OPERATORS(value, value_type, value_type);
 
 		static const object::access_type access = access;
 
