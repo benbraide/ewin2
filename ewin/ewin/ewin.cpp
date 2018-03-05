@@ -3,6 +3,7 @@
 #include "property/value_ref_property.h"
 #include "property/point_property.h"
 #include "property/rect_property.h"
+#include "property/variadic_property.h"
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow){
 	struct man{
@@ -26,10 +27,15 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 		man2(){
 			val.set_ref_(&val_);
+			val2.set_ref_(&i_);
+			val2.set_ref_(&b_);
 		}
 
 		ewin::property::value_ref<man2, s> val;
 		s val_ = { 9, 18 };
+		ewin::property::variadic<man2, ewin::property::object::access_type::nil, int, bool> val2;
+		int i_ = 45;
+		bool b_ = false;
 	};
 
 	int i = 9;
@@ -45,6 +51,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	man2 mani2;
 	mani2.val->b += 18;
 	auto b2 = (mani2.val->b == 18), c2 = (27 == mani2.val->b);
+
+	int iv = mani2.val2;
+	bool bv = mani2.val2;
 
 	return 0;
 }

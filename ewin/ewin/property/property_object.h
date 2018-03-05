@@ -104,6 +104,9 @@ return n;
 #define EWIN_PROP_SEQ_PTR_IDX(t, v, i) (reinterpret_cast<t *>(const_cast<std::remove_cv<decltype(v)>>(v)) + i)
 #define EWIN_PROP_SEQ_CPTR_IDX(t, v, i) (reinterpret_cast<const t *>(v) + i)
 
+#define EWIN_PROP_WRITEONLY(n, ...) ewin::property::n<__VA_ARGS__, ewin::property::object::access_type::write>
+#define EWIN_PROP_READONLY(n, ...) ewin::property::n<__VA_ARGS__, ewin::property::object::access_type::read>
+
 namespace ewin::property{
 	class object{
 	public:
@@ -129,7 +132,7 @@ namespace ewin::property{
 		typedef std::function<void(void *, void *, access_type)> callback_type;
 
 		struct indexed_target_info_type{
-			int index;
+			std::size_t index;
 			void *target;
 		};
 
