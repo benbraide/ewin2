@@ -54,8 +54,7 @@ namespace ewin::property{
 			return ((&target == this) ? *this : operator=(target.operator value_type *()));
 		}
 
-		template <typename unused_type = value_type>
-		EWIN_VAL_PROP_ENABLE_GENERIC(!std::is_fundamental_v<unused_type>, value_type) *operator ->() const{
+		value_type *operator ->() const{
 			return operator value_type *();
 		}
 

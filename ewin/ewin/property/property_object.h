@@ -8,6 +8,9 @@
 #include "../common/macro.h"
 #include "../common/error.h"
 
+#define EWIN_PROP_HANDLER(t, f) std::bind(&t::f, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+#define EWIN_PROP_HANDLER_DEF(t) EWIN_PROP_HANDLER(t, handle_property_)
+
 #define EWIN_PROP_REF_PTR(v) const_cast<void *>(static_cast<const void *>(&v))
 #define EWIN_PROP_PTR_PTR(v) const_cast<void *>(static_cast<const void *>(v))
 
@@ -29,25 +32,71 @@ if (access != object::access_type::nil && !EWIN_IS(access, a))\
 EWIN_PROP_SAFE_VALIDATE(a);
 
 #define EWIN_PROP_WRITE_VALUE(v, a)\
+{\
 	std::remove_cv_t<decltype(v)> EWIN_PROP_WRITE_VALUE_VAR((v));\
-	EWIN_PROP_REF_CALL(EWIN_PROP_WRITE_VALUE_VAR, a);
+	EWIN_PROP_REF_CALL(EWIN_PROP_WRITE_VALUE_VAR, a);\
+}
 
 #define EWIN_PROP_WRITE_VALUE_DEF(v) EWIN_PROP_WRITE_VALUE((v), object::access_type::write)
 
+#define EWIN_PROP_WRITE_INDEXED_OR_SUB_VALUE(in, i, v, a)\
+{\
+	std::remove_cv_t<decltype(v)> EWIN_PROP_WRITE_INDEXED_VALUE_VAR((v));\
+	object::in EWIN_PROP_WRITE_INDEXED_VALUE_IDX_VAR{ (i), &EWIN_PROP_WRITE_INDEXED_VALUE_VAR };\
+	EWIN_PROP_REF_CALL(EWIN_PROP_WRITE_INDEXED_VALUE_IDX_VAR, a);\
+}
+
+#define EWIN_PROP_WRITE_INDEXED_VALUE(i, v, a) EWIN_PROP_WRITE_INDEXED_OR_SUB_VALUE(indexed_target_info_type, i, v, a)
+#define EWIN_PROP_WRITE_INDEXED_VALUE_DEF(i, v) EWIN_PROP_WRITE_INDEXED_VALUE((i), (v), object::access_type::write)
+
+#define EWIN_PROP_WRITE_SUB_VALUE(i, v, a) EWIN_PROP_WRITE_INDEXED_OR_SUB_VALUE(sub_target_info_type, i, v, a)
+#define EWIN_PROP_WRITE_SUB_VALUE_DEF(i, v) EWIN_PROP_WRITE_SUB_VALUE((i), (v), object::access_type::write)
+
 #define EWIN_PROP_READ_VALUE(n, t, a)\
-	std::remove_cv_t<t> n;\
-	EWIN_PROP_REF_CALL(n, a);
+std::remove_cv_t<t> n;\
+EWIN_PROP_REF_CALL(n, a);
 
 #define EWIN_PROP_READ_VALUE_DEF(n, t) EWIN_PROP_READ_VALUE(n, t, object::access_type::read)
 
 #define EWIN_PROP_RETURN_VALUE(n, t, a)\
-	EWIN_PROP_READ_VALUE(n, t, a)\
-	return n;
+EWIN_PROP_READ_VALUE(n, t, a)\
+return n;
 
 #define EWIN_PROP_RETURN_VALUE_DEF(n, t) EWIN_PROP_RETURN_VALUE(n, t, object::access_type::read)
 
 #define EWIN_PROP_RETURN_VALUE_UNNAMED(t, a) EWIN_PROP_RETURN_VALUE(EWIN_PROP_RETURN_VALUE_UNNAMED_VAR, t, a)
 #define EWIN_PROP_RETURN_VALUE_UNNAMED_DEF(t) EWIN_PROP_RETURN_VALUE_UNNAMED(t, object::access_type::read)
+
+#define EWIN_PROP_READ_INDEXED_OR_SUB_VALUE(n, t, in, i, a)\
+std::remove_cv_t<t> n;\
+{\
+	object::in EWIN_PROP_READ_INDEXED_VALUE_IDX_VAR{ (i), &n };\
+	EWIN_PROP_REF_CALL(n, a);\
+}
+
+#define EWIN_PROP_READ_INDEXED_VALUE(n, t, i, a) EWIN_PROP_READ_INDEXED_OR_SUB_VALUE(n, t, indexed_target_info_type, i, a)
+#define EWIN_PROP_READ_INDEXED_VALUE_DEF(n, t, i) EWIN_PROP_READ_INDEXED_VALUE(n, t, i, object::access_type::read)
+
+#define EWIN_PROP_RETURN_INDEXED_VALUE(n, t, i, a)\
+EWIN_PROP_READ_INDEXED_VALUE(n, t, i, a)\
+return n;
+
+#define EWIN_PROP_RETURN_INDEXED_VALUE_DEF(n, t, i) EWIN_PROP_RETURN_INDEXED_VALUE(n, t, i, object::access_type::read)
+
+#define EWIN_PROP_RETURN_INDEXED_VALUE_UNNAMED(t, i, a) EWIN_PROP_RETURN_INDEXED_VALUE(EWIN_PROP_RETURN_INDEXED_VALUE_UNNAMED_VAR, t, i, a)
+#define EWIN_PROP_RETURN_INDEXED_VALUE_UNNAMED_DEF(t, i) EWIN_PROP_RETURN_INDEXED_VALUE_UNNAMED(t, i, object::access_type::read)
+
+#define EWIN_PROP_READ_SUB_VALUE(n, t, i, a) EWIN_PROP_READ_INDEXED_OR_SUB_VALUE(n, t, sub_target_info_type, i, a)
+#define EWIN_PROP_READ_SUB_VALUE_DEF(n, t, i) EWIN_PROP_READ_SUB_VALUE(n, t, i, object::access_type::read)
+
+#define EWIN_PROP_RETURN_SUB_VALUE(n, t, i, a)\
+EWIN_PROP_READ_SUB_VALUE(n, t, i, a)\
+return n;
+
+#define EWIN_PROP_RETURN_SUB_VALUE_DEF(n, t, i) EWIN_PROP_RETURN_SUB_VALUE(n, t, i, object::access_type::read)
+
+#define EWIN_PROP_RETURN_SUB_VALUE_UNNAMED(t, i, a) EWIN_PROP_RETURN_SUB_VALUE(EWIN_PROP_RETURN_SUB_VALUE_UNNAMED_VAR, t, i, a)
+#define EWIN_PROP_RETURN_SUB_VALUE_UNNAMED_DEF(t, i) EWIN_PROP_RETURN_SUB_VALUE_UNNAMED(t, i, object::access_type::read)
 
 #define EWIN_PROP_SEQ_REF_IDX(t, v, i) (reinterpret_cast<t *>(const_cast<std::remove_cv<decltype(&v)>>(&v)) + i)
 #define EWIN_PROP_SEQ_CREF_IDX(t, v, i) (reinterpret_cast<const t *>(&v) + i)
@@ -78,6 +127,16 @@ namespace ewin::property{
 		};
 
 		typedef std::function<void(void *, void *, access_type)> callback_type;
+
+		struct indexed_target_info_type{
+			int index;
+			void *target;
+		};
+
+		struct sub_target_info_type{
+			void *sub;
+			void *target;
+		};
 
 		object() = default;
 

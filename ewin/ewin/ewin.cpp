@@ -1,6 +1,7 @@
 #include <windows.h>
 
 #include "property/value_ref_property.h"
+#include "property/point_property.h"
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow){
 	struct man{

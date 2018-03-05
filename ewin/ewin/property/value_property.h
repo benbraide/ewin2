@@ -24,10 +24,38 @@ operator op ## =(const target_type &target){\
 	return (*this = (*this op target));\
 }
 
+#define EWIN_VAL_PROP_REL_OP(n, vt, op, c, w, ...)\
+template <typename target_type, typename unused_type = value_type>\
+EWIN_VAL_PROP_ENABLE_GENERIC(EWIN_VAL_PROP_CHECK_UNIQUE(n, unused_type, __VA_ARGS__), bool)\
+operator op(const target_type &target) const{\
+	return (c(operator vt(), static_cast<vt>(target)) == w);\
+}
+
+#define EWIN_VAL_PROP_REL_OP2(n, vt, op, c, w, x, ...)\
+template <typename target_type, typename unused_type = value_type>\
+EWIN_VAL_PROP_ENABLE_GENERIC(EWIN_VAL_PROP_CHECK_UNIQUE(n, unused_type, __VA_ARGS__), bool)\
+operator op(const target_type &target) const{\
+	auto v = c(operator vt(), static_cast<vt>(target));\
+	return (v == w || v == x);\
+}
+
 #define EWIN_VAL_PROP_FRIEND_OP(n, vt, r, op)\
 template <typename target_type>\
 friend r operator op(const target_type &left, const n &right){\
 	return (static_cast<vt>(left) op static_cast<vt>(right));\
+}
+
+#define EWIN_VAL_PROP_FRIEND_REL_OP(n, vt, op, c, w)\
+template <typename target_type>\
+friend bool operator op(const target_type &left, const n &right){\
+	return (c(static_cast<vt>(left), static_cast<vt>(right)) == w);\
+}
+
+#define EWIN_VAL_PROP_FRIEND_REL_OP2(n, vt, op, c, w, x)\
+template <typename target_type>\
+friend bool operator op(const target_type &left, const n &right){\
+	auto v = c(static_cast<vt>(left), static_cast<vt>(right));\
+	return (v == w || v == x);\
 }
 
 #define EWIN_VAL_PROP_RELATIONAL_OPERATORS(n, vt, ...)\
@@ -71,6 +99,22 @@ EWIN_VAL_PROP_FRIEND_OP(n, vt, r, >>)\
 EWIN_VAL_PROP_FRIEND_OP(n, vt, r, &)\
 EWIN_VAL_PROP_FRIEND_OP(n, vt, r, |)\
 EWIN_VAL_PROP_FRIEND_OP(n, vt, r, ^)
+
+#define EWIN_VAL_PROP_REL_OPERATORS(n, vt, c, ...)\
+EWIN_VAL_PROP_REL_OP(n, vt, <, c, -1, __VA_ARGS__)\
+EWIN_VAL_PROP_REL_OP2(n, vt, <=, c, -1, 0, __VA_ARGS__)\
+EWIN_VAL_PROP_REL_OP(n, vt, ==, c, 0, __VA_ARGS__)\
+EWIN_VAL_PROP_REL_OP2(n, vt, !=, c, -1, 1, __VA_ARGS__)\
+EWIN_VAL_PROP_REL_OP2(n, vt, >=, c, 0, 1, __VA_ARGS__)\
+EWIN_VAL_PROP_REL_OP(n, vt, >, c, 1, __VA_ARGS__)
+
+#define EWIN_VAL_PROP_FRIEND_REL_OPERATORS(n, vt, c)\
+EWIN_VAL_PROP_FRIEND_REL_OP(n, vt, <, c, -1)\
+EWIN_VAL_PROP_FRIEND_REL_OP2(n, vt, <=, c, -1, 0)\
+EWIN_VAL_PROP_FRIEND_REL_OP(n, vt, ==, c, 0)\
+EWIN_VAL_PROP_FRIEND_REL_OP2(n, vt, !=, c, -1, 1)\
+EWIN_VAL_PROP_FRIEND_REL_OP2(n, vt, >=, c, 0, 1)\
+EWIN_VAL_PROP_FRIEND_REL_OP(n, vt, >, c, 1)
 
 #define EWIN_VAL_PROP_OPERATORS(n, vt, r, ...)\
 EWIN_VAL_PROP_RELATIONAL_OPERATORS(n, vt, __VA_ARGS__)\
@@ -169,8 +213,12 @@ namespace ewin::property{
 			ref_ = ref;
 		}
 
-		void set_manager_(typename managed_type::callback_type callback, value_type *ref){
+		void set_manager_(typename managed_type::callback_type callback){
 			managed_type::set_manager_(callback);
+		}
+
+		void set_manager_(typename managed_type::callback_type callback, value_type *ref){
+			set_manager_(callback);
 			set_ref_(ref);
 		}
 
