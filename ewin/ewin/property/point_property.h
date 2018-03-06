@@ -18,14 +18,45 @@ namespace ewin::property{
 			field_type y;
 		};
 
+		value_type operator()() const{
+			return operator value_type();
+		}
+
+		template <typename target_type>
+		point &operator()(const target_type &target){
+			return operator=(target);
+		}
+
+		operator value_type() const{
+			recent_ = nullptr;
+			EWIN_PROP_CHECK_ACCESS(object::access_type::read);
+			if (value_prop_type::ref_ != nullptr){//Return ref
+				EWIN_PROP_SAFE_ALERT(object::access_type::read);
+				return *value_prop_type::ref_;
+			}
+
+			EWIN_PROP_REQUIRE_CALLBACK;
+			EWIN_PROP_RETURN_SUB_VALUE_UNNAMED_DEF(value_type, nullptr);
+		}
+
 		template <typename target_type>
 		point &operator =(const target_type &target){
-			value_prop_type::operator=(target);
+			recent_ = nullptr;
+			EWIN_PROP_CHECK_ACCESS(object::access_type::write);
+			if (value_prop_type::ref_ == nullptr){
+				EWIN_PROP_REQUIRE_CALLBACK;
+				EWIN_PROP_WRITE_SUB_VALUE_DEF(nullptr, static_cast<const value_type &>(target));
+			}
+			else{//Update ref
+				*value_prop_type::ref_ = static_cast<const value_type &>(target);
+				EWIN_PROP_SAFE_ALERT(object::access_type::write);
+			}
+
 			return *this;
 		}
 
 		point &operator =(const point &target){
-			return ((&target == this) ? *this : operator=(target.operator value_type *()));
+			return ((&target == this) ? *this : operator=(static_cast<const value_type &>(target)));
 		}
 
 		EWIN_VAL_PROP_REL_OPERATORS(point, const value_type &, compare, field_type, access);
@@ -112,6 +143,7 @@ namespace ewin::property{
 		}
 
 		void handle_property_(void *prop, void *arg, object::access_type access){
+			recent_ = prop;
 			if (EWIN_IS(access, object::access_type::validate)){
 				EWIN_PROP_SAFE_VALIDATE(access);
 				return;
@@ -130,6 +162,8 @@ namespace ewin::property{
 			else if (EWIN_IS(access, object::access_type::write))
 				EWIN_PROP_WRITE_SUB_VALUE_DEF(prop, *static_cast<field_type *>(arg));
 		}
+
+		mutable void *recent_ = nullptr;
 	};
 }
 

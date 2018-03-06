@@ -23,7 +23,14 @@
 #define EWIN_PROP_ALERT(a) EWIN_PROP_PTR_CALL(nullptr, (a | object::access_type::alert));
 #define EWIN_PROP_SAFE_ALERT(a) if (EWIN_PROP_HAS_CALLBACK) EWIN_PROP_ALERT(a);
 
-#define EWIN_PROP_VALIDATE(a) EWIN_PROP_PTR_CALL(nullptr, (a | object::access_type::validate));
+#define EWIN_PROP_VALIDATE(a)\
+{\
+	auto state = true;\
+	EWIN_PROP_REF_CALL(state, (a | object::access_type::validate));\
+	if (!state)\
+		throw common::error::property_forbidden;\
+}
+
 #define EWIN_PROP_SAFE_VALIDATE(a) if (EWIN_PROP_HAS_CALLBACK) EWIN_PROP_VALIDATE(a);
 
 #define EWIN_PROP_CHECK_ACCESS(a)\
@@ -42,7 +49,7 @@ EWIN_PROP_SAFE_VALIDATE(a);
 #define EWIN_PROP_WRITE_INDEXED_OR_SUB_VALUE(in, i, v, a)\
 {\
 	std::remove_cv_t<decltype(v)> EWIN_PROP_WRITE_INDEXED_VALUE_VAR((v));\
-	object::in EWIN_PROP_WRITE_INDEXED_VALUE_IDX_VAR{ (i), &EWIN_PROP_WRITE_INDEXED_VALUE_VAR };\
+	object::in EWIN_PROP_WRITE_INDEXED_VALUE_IDX_VAR{ (i), EWIN_PROP_REF_PTR(EWIN_PROP_WRITE_INDEXED_VALUE_VAR) };\
 	EWIN_PROP_REF_CALL(EWIN_PROP_WRITE_INDEXED_VALUE_IDX_VAR, a);\
 }
 
@@ -70,7 +77,7 @@ return n;
 #define EWIN_PROP_READ_INDEXED_OR_SUB_VALUE(n, t, in, i, a)\
 std::remove_cv_t<t> n;\
 {\
-	object::in EWIN_PROP_READ_INDEXED_VALUE_IDX_VAR{ (i), &n };\
+	object::in EWIN_PROP_READ_INDEXED_VALUE_IDX_VAR{ (i), EWIN_PROP_REF_PTR(n) };\
 	EWIN_PROP_REF_CALL(n, a);\
 }
 

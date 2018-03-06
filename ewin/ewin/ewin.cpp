@@ -29,13 +29,17 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 			val.set_ref_(&val_);
 			val2.set_ref_(&i_);
 			val2.set_ref_(&b_);
+			pt.set_ref_(&pt_);
+			pt2.set_ref_(&pt_);
 		}
 
 		ewin::property::value_ref<man2, s> val;
 		s val_ = { 9, 18 };
 		ewin::property::variadic<man2, ewin::property::object::access_type::nil, int, bool> val2;
+		ewin::property::point<man2, ::POINT, int> pt, pt2;
 		int i_ = 45;
 		bool b_ = false;
+		::POINT pt_;
 	};
 
 	int i = 9;
@@ -54,6 +58,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	int iv = mani2.val2;
 	bool bv = mani2.val2;
+
+	mani2.pt = mani2.pt2;
 
 	return 0;
 }

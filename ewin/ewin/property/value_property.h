@@ -156,7 +156,7 @@ namespace ewin::property{
 			EWIN_PROP_CHECK_ACCESS(object::access_type::write);
 			if (ref_ == nullptr){
 				EWIN_PROP_REQUIRE_CALLBACK;
-				EWIN_PROP_WRITE_VALUE_DEF(static_cast<value_type>(target));
+				EWIN_PROP_WRITE_VALUE_DEF(static_cast<const value_type &>(target));
 			}
 			else{//Update ref
 				*ref_ = static_cast<value_type>(target);
@@ -167,14 +167,14 @@ namespace ewin::property{
 		}
 
 		value &operator =(const value &target){
-			return ((&target == this) ? *this : operator=(target.operator value_type()));
+			return ((&target == this) ? *this : operator=(static_cast<const value_type &>(*this)));
 		}
 
-		value_type *operator ->() const{
+		value_type operator ->() const{
 			return operator value_type();
 		}
 
-		value_type &operator *() const{
+		std::remove_pointer_t<value_type> &operator *() const{
 			return *operator value_type();
 		}
 
