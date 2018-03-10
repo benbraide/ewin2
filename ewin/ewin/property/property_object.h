@@ -129,11 +129,11 @@ namespace ewin::property{
 			list_begin			= (1 << 0x0007),
 			list_end			= (1 << 0x0008),
 			list_size			= (1 << 0x0009),
-			write_alt			= (1 << 0x000A),
-			increment			= (1 << 0x000B),
-			decrement			= (1 << 0x000C),
-			validate			= (1 << 0x000D),
-			alert				= (1 << 0x000E),
+			increment			= (1 << 0x000A),
+			decrement			= (1 << 0x000B),
+			validate			= (1 << 0x000C),
+			alert				= (1 << 0x000D),
+			alternate			= (1 << 0x000E),
 		};
 
 		typedef std::function<void(void *, void *, access_type)> callback_type;

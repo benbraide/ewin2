@@ -3,6 +3,8 @@
 #ifndef EWIN_VARIADIC_PROPERTY_H
 #define EWIN_VARIADIC_PROPERTY_H
 
+#include <vector>
+
 #include "../common/variadic_type_list.h"
 
 #include "value_property.h"
@@ -19,13 +21,32 @@ namespace ewin::property{
 			return operator target_type();
 		}
 
-		template <typename target_type>
-		variadic &operator()(const target_type &target){
-			return operator=(target);
+		template <typename first_type, typename... target_types>
+		variadic &operator()(const first_type &first, const target_types &... targets){
+			if (common::variadic_type_list<first_type, target_types...>::size == 1u)
+				return single_call_(first, targets...);//Single argument
+
+			current_ = static_cast<std::size_t>(-1);
+			EWIN_PROP_CHECK_ACCESS(object::access_type::write);
+			std::vector<object::indexed_target_info_type> args;
+
+			args.reserve(common::variadic_type_list<first_type, target_types...>::size);
+			stack_call_arg_(args, first, targets...);
+
+			if (args.size() < common::variadic_type_list<first_type, target_types...>::size)
+				EWIN_PROP_SAFE_ALERT(object::access_type::write);//Refs updated
+
+			if (!args.empty()){//Update rest without ref
+				EWIN_PROP_REQUIRE_CALLBACK;
+				EWIN_PROP_REF_CALL(args, (object::access_type::write | object::access_type::alternate));
+			}
+
+			return *this;
 		}
 
 		template <typename target_type>
 		operator target_type() const{
+			current_ = variadic_type_list_type::index<target_type>();
 			EWIN_PROP_CHECK_ACCESS(object::access_type::read);
 			if (refs_[variadic_type_list_type::index<target_type>()] != nullptr){//Return ref
 				EWIN_PROP_SAFE_ALERT(object::access_type::read);
@@ -38,6 +59,7 @@ namespace ewin::property{
 
 		template <typename target_type>
 		variadic &operator =(const target_type &target){
+			current_ = variadic_type_list_type::index<target_type>();
 			EWIN_PROP_CHECK_ACCESS(object::access_type::write);
 			if (refs_[variadic_type_list_type::index<target_type>()] == nullptr){
 				EWIN_PROP_REQUIRE_CALLBACK;
@@ -105,7 +127,32 @@ namespace ewin::property{
 			set_ref_(ref);
 		}
 
+		template <typename first_type, typename... target_types>
+		variadic &single_call_(const first_type &first, const target_types &... targets){
+			return operator=(first);
+		}
+
+		template <typename first_type>
+		void stack_call_arg_(std::vector<object::indexed_target_info_type> &args, const first_type &first){
+			if (refs_[variadic_type_list_type::index<first_type>()] == nullptr){
+				args.push_back(object::indexed_target_info_type{
+					variadic_type_list_type::index<first_type>(),
+					EWIN_PROP_REF_PTR(first)
+				});
+			}
+			else//Has ref
+				*static_cast<first_type *>(refs_[variadic_type_list_type::index<first_type>()]) = first;
+		}
+
+		template <typename first_type, typename second_type, typename... target_types>
+		void stack_call_arg_(std::vector<object::indexed_target_info_type> &args, const first_type &first,
+			const second_type &second, const target_types &... targets){
+			stack_call_arg_(args, first);
+			stack_call_arg_(args, second, targets...);
+		}
+
 		void *refs_[variadic_type_list_type::size];
+		mutable std::size_t current_ = static_cast<std::size_t>(-1);
 	};
 }
 
