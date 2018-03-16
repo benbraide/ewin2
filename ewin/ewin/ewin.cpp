@@ -5,6 +5,8 @@
 #include "property/rect_property.h"
 #include "property/variadic_property.h"
 
+using namespace std;
+
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow){
 	struct man{
 		man()

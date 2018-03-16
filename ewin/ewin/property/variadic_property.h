@@ -46,27 +46,27 @@ namespace ewin::property{
 
 		template <typename target_type>
 		operator target_type() const{
-			current_ = variadic_type_list_type::index<target_type>();
+			current_ = variadic_type_list_type::template index<target_type>();
 			EWIN_PROP_CHECK_ACCESS(object::access_type::read);
-			if (refs_[variadic_type_list_type::index<target_type>()] != nullptr){//Return ref
+			if (refs_[variadic_type_list_type::template index<target_type>()] != nullptr){//Return ref
 				EWIN_PROP_SAFE_ALERT(object::access_type::read);
-				return *static_cast<target_type *>(refs_[variadic_type_list_type::index<target_type>()]);
+				return *static_cast<target_type *>(refs_[variadic_type_list_type::template index<target_type>()]);
 			}
 
 			EWIN_PROP_REQUIRE_CALLBACK;
-			EWIN_PROP_RETURN_INDEXED_VALUE_UNNAMED_DEF(target_type, variadic_type_list_type::index<target_type>());
+			EWIN_PROP_RETURN_INDEXED_VALUE_UNNAMED_DEF(target_type, variadic_type_list_type::template index<target_type>());
 		}
 
 		template <typename target_type>
 		variadic &operator =(const target_type &target){
-			current_ = variadic_type_list_type::index<target_type>();
+			current_ = variadic_type_list_type::template index<target_type>();
 			EWIN_PROP_CHECK_ACCESS(object::access_type::write);
-			if (refs_[variadic_type_list_type::index<target_type>()] == nullptr){
+			if (refs_[variadic_type_list_type::template index<target_type>()] == nullptr){
 				EWIN_PROP_REQUIRE_CALLBACK;
-				EWIN_PROP_WRITE_INDEXED_VALUE_DEF(variadic_type_list_type::index<target_type>(), target);
+				EWIN_PROP_WRITE_INDEXED_VALUE_DEF(variadic_type_list_type::template index<target_type>(), target);
 			}
 			else{//Update ref
-				*static_cast<target_type *>(refs_[variadic_type_list_type::index<target_type>()]) = target;
+				*static_cast<target_type *>(refs_[variadic_type_list_type::template index<target_type>()]) = target;
 				EWIN_PROP_SAFE_ALERT(object::access_type::write);
 			}
 
@@ -78,31 +78,42 @@ namespace ewin::property{
 	protected:
 		friend manager_type;
 
-		variadic() = default;
+		variadic(){
+			init_();
+		}
 
 		explicit variadic(typename managed_type::callback_type callback)
-			: managed_type(callback){}
+			: managed_type(callback){
+			init_();
+		}
 
 		template <typename ref_type>
 		explicit variadic(ref_type *ref){
+			init_();
 			set_ref_(ref);
 		}
 
 		template <typename ref_type>
 		variadic(typename managed_type::callback_type callback, ref_type *ref)
 			: managed_type(callback){
+			init_();
 			set_ref_(ref);
 		}
 
-		variadic(variadic &&target)
+		variadic(variadic &&target) noexcept
 			: managed_type(std::move(target)){
 			move_(target);
 		}
 
-		variadic &operator =(variadic &&target){
+		variadic &operator =(variadic &&target) noexcept{
 			managed_type::operator=(std::move(target));
 			move_(target);
 			return *this;
+		}
+
+		void init_(){
+			for (std::size_t i = 0u; i < variadic_type_list_type::size; ++i)
+				refs_[i] = nullptr;
 		}
 
 		void move_(variadic &&target){
@@ -114,7 +125,7 @@ namespace ewin::property{
 
 		template <typename ref_type>
 		void set_ref_(ref_type *ref){
-			refs_[variadic_type_list_type::index<ref_type>()] = ref;
+			refs_[variadic_type_list_type::template index<ref_type>()] = ref;
 		}
 
 		void set_manager_(typename managed_type::callback_type callback){
@@ -134,14 +145,14 @@ namespace ewin::property{
 
 		template <typename first_type>
 		void stack_call_arg_(std::vector<object::indexed_target_info_type> &args, const first_type &first){
-			if (refs_[variadic_type_list_type::index<first_type>()] == nullptr){
+			if (refs_[variadic_type_list_type::template index<first_type>()] == nullptr){
 				args.push_back(object::indexed_target_info_type{
-					variadic_type_list_type::index<first_type>(),
+					variadic_type_list_type::template index<first_type>(),
 					EWIN_PROP_REF_PTR(first)
 				});
 			}
 			else//Has ref
-				*static_cast<first_type *>(refs_[variadic_type_list_type::index<first_type>()]) = first;
+				*static_cast<first_type *>(refs_[variadic_type_list_type::template index<first_type>()]) = first;
 		}
 
 		template <typename first_type, typename second_type, typename... target_types>
