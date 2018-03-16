@@ -16,6 +16,12 @@ namespace ewin::common{
 	struct variadic_type_index<target_type, other_type, type_list...>
 		: std::integral_constant<std::size_t, 1 + variadic_type_index<target_type, type_list...>::value>{};
 
+	template <class first_type, class second_type>
+	struct variadic_type_pair{
+		typedef first_type first_type;
+		typedef second_type second_type;
+	};
+
 	template <class... type_list>
 	struct variadic_type_list{
 		static constexpr std::size_t size = sizeof...(type_list);
@@ -23,6 +29,19 @@ namespace ewin::common{
 		template <typename target_type>
 		static constexpr std::size_t index(){
 			return variadic_type_index<target_type, type_list...>::value;
+		}
+	};
+
+	template <class... type_list>
+	struct variadic_type_pair_list : variadic_type_list<type_list...>{
+		template <typename target_type>
+		static constexpr std::size_t index_of_first(){
+			return variadic_type_index<target_type, typename type_list::first_type...>::value;
+		}
+
+		template <typename target_type>
+		static constexpr std::size_t index_of_second(){
+			return variadic_type_index<target_type, typename type_list::second_type...>::value;
 		}
 	};
 }
