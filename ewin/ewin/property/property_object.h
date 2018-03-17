@@ -148,11 +148,20 @@ namespace ewin::property{
 			void *target;
 		};
 
+		template <class query_type, class return_type>
+		struct query_return_info_type{
+			query_type query;
+			return_type return_value;
+		};
+
 		object() = default;
 
 		object(const object &) = delete;
 
 		object(object &&) = delete;
+
+		explicit object(callback_type callback)
+			: callback_(callback){}
 		
 		object &operator =(const object &) = delete;
 
@@ -173,14 +182,14 @@ namespace ewin::property{
 		managed() = default;
 
 		explicit managed(callback_type callback)
-			: callback_(callback){}
+			: object(callback){}
 
-		managed(managed &&target)
-			: callback_(target.callback_){
+		managed(managed &&target) noexcept
+			: object(target.callback_){
 			target.callback_ = nullptr;
 		}
 
-		managed &operator =(managed &&target){
+		managed &operator =(managed &&target) noexcept{
 			callback_ = target.callback_;
 			target.callback_ = nullptr;
 			return *this;

@@ -2,7 +2,7 @@
 
 #include "property/value_ref_property.h"
 #include "property/point_property.h"
-#include "property/rect_property.h"
+#include "property/transform_property.h"
 #include "property/variadic_property.h"
 
 using namespace std;
@@ -43,6 +43,25 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		bool b_ = false;
 		::POINT pt_;
 	};
+
+	struct man3{
+		ewin::property::single_transform<man3, int, bool> is_even;
+		man3(){
+			is_even.set_manager_(EWIN_PROP_HANDLER_DEF(man3));
+		}
+
+		void handle_property_(void *prop, void *arg, ewin::property::object::access_type access){
+			if (EWIN_IS_ANY(access, ewin::property::object::access_type::alert | ewin::property::object::access_type::validate))
+				return;
+
+			auto info = static_cast<ewin::property::object::query_return_info_type<const int *, bool> *>(static_cast<ewin::property::object::indexed_target_info_type *>(arg)->target);
+			info->return_value = ((*info->query % 2) == 0);
+		}
+	};
+
+	man3 mani3;
+	auto m3v = mani3.is_even[36];
+	auto m3v2 = mani3.is_even[9];
 
 	int i = 9;
 	const float &ic = static_cast<const float &>(i);
