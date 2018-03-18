@@ -46,22 +46,48 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	struct man3{
 		ewin::property::single_transform<man3, int, bool> is_even;
+		ewin::property::transform<
+			man3,
+			ewin::property::object::access_type::nil,
+			ewin::common::variadic_type_pair<int, bool>,
+			ewin::common::variadic_type_pair<float, int>
+		> query;
 		man3(){
 			is_even.set_manager_(EWIN_PROP_HANDLER_DEF(man3));
+			query.set_manager_(EWIN_PROP_HANDLER_DEF(man3));
 		}
 
 		void handle_property_(void *prop, void *arg, ewin::property::object::access_type access){
 			if (EWIN_IS_ANY(access, ewin::property::object::access_type::alert | ewin::property::object::access_type::validate))
 				return;
 
-			auto info = static_cast<ewin::property::object::query_return_info_type<const int *, bool> *>(static_cast<ewin::property::object::indexed_target_info_type *>(arg)->target);
-			info->return_value = ((*info->query % 2) == 0);
+			auto tinfo = static_cast<ewin::property::object::indexed_target_info_type *>(arg);
+			if (prop == &query){
+				if (tinfo->index == 0u){
+					auto info = static_cast<ewin::property::object::query_return_info_type<const int *, bool> *>(tinfo->target);
+					info->return_value = ((*info->query % 2) != 0);
+				}
+				else{
+					auto info = static_cast<ewin::property::object::query_return_info_type<const float *, int> *>(tinfo->target);
+					info->return_value = static_cast<int>(*info->query + 0.5f);
+				}
+			}
+			else{
+				auto info = static_cast<ewin::property::object::query_return_info_type<const int *, bool> *>(tinfo->target);
+				info->return_value = ((*info->query % 2) == 0);
+			}
 		}
 	};
 
 	man3 mani3;
 	auto m3v = mani3.is_even[36];
 	auto m3v2 = mani3.is_even[9];
+
+	auto m3v3 = mani3.query[36];
+	auto m3v4 = mani3.query[9];
+
+	auto m3v5 = mani3.query[36.4f];
+	auto m3v6 = mani3.query[9.5f];
 
 	int i = 9;
 	const float &ic = static_cast<const float &>(i);

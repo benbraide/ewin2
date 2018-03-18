@@ -160,7 +160,7 @@ namespace ewin::property{
 				return;
 			}
 
-			if (EWIN_IS(access, object::access_type::alert) || value_prop_type::ref_ == nullptr){
+			if (EWIN_IS(access, object::access_type::alert) || value_prop_type::ref_ != nullptr){
 				EWIN_PROP_SAFE_ALERT(access);
 				return;
 			}

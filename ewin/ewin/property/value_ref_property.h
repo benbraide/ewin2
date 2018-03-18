@@ -74,10 +74,10 @@ namespace ewin::property{
 		value_ref(typename value_prop_type::callback_type callback, value_type *ref)
 			: value_prop_type(callback, ref){}
 
-		value_ref(value_ref &&target)
+		value_ref(value_ref &&target) noexcept
 			: value_prop_type(std::move(target)){}
 
-		value_ref &operator =(value_ref &&target){
+		value_ref &operator =(value_ref &&target) noexcept{
 			value_prop_type::operator=(std::move(target));
 			return *this;
 		}

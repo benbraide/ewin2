@@ -167,7 +167,7 @@ namespace ewin::property{
 		}
 
 		value &operator =(const value &target){
-			return ((&target == this) ? *this : operator=(static_cast<const value_type &>(*this)));
+			return ((&target == this) ? *this : operator=(static_cast<const value_type &>(target)));
 		}
 
 		value_type operator ->() const{
@@ -197,12 +197,12 @@ namespace ewin::property{
 		value(typename managed_type::callback_type callback, value_type *ref)
 			: managed_type(callback), ref_(ref){}
 
-		value(value &&target)
+		value(value &&target) noexcept
 			: managed_type(std::move(target)), ref_(target.ref_){
 			target.ref_ = nullptr;
 		}
 
-		value &operator =(value &&target){
+		value &operator =(value &&target) noexcept{
 			managed_type::operator=(std::move(target));
 			ref_ = target.ref_;
 			target.ref_ = nullptr;

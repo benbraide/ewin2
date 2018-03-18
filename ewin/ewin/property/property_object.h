@@ -134,6 +134,7 @@ namespace ewin::property{
 			validate			= (1 << 0x000C),
 			alert				= (1 << 0x000D),
 			alternate			= (1 << 0x000E),
+			none				= (1 << 0x000F),
 		};
 
 		typedef std::function<void(void *, void *, access_type)> callback_type;
@@ -152,6 +153,12 @@ namespace ewin::property{
 		struct query_return_info_type{
 			query_type query;
 			return_type return_value;
+		};
+
+		template <class index_type, class value_type>
+		struct indexed_value_type{
+			index_type index;
+			value_type value;
 		};
 
 		object() = default;
