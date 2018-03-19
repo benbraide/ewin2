@@ -5,9 +5,29 @@
 #include "property/transform_property.h"
 #include "property/variadic_property.h"
 
+#include "common/error_object.h"
+
 using namespace std;
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow){
+	ewin::common::error_object err;
+	bool has = err;
+	ewin::common::error eval = err;
+	DWORD dwe = err;
+	HRESULT hr = err;
+	std::wstring swe = err;
+	ewin::common::error_object::error_throw_policy_type etp = err;
+	try{
+		err = ERROR_ACCESS_DENIED;
+	}
+	catch (ewin::common::error_object *e){
+		has = *e;
+		eval = *e;
+		dwe = *e;
+		hr = *e;
+		swe = e->operator std::wstring();
+	}
+
 	struct man{
 		man()
 			: ptr_(&val_){

@@ -9,6 +9,8 @@ namespace ewin::common{
 		property_not_initialized,
 		property_access_violation,
 		property_forbidden,
+		local_error,
+		status_error,
 	};
 }
 

@@ -78,7 +78,7 @@ return n;
 std::remove_cv_t<t> n;\
 {\
 	object::in EWIN_PROP_READ_INDEXED_VALUE_IDX_VAR{ (i), EWIN_PROP_REF_PTR(n) };\
-	EWIN_PROP_REF_CALL(n, a);\
+	EWIN_PROP_REF_CALL(EWIN_PROP_READ_INDEXED_VALUE_IDX_VAR, a);\
 }
 
 #define EWIN_PROP_READ_INDEXED_VALUE(n, t, i, a) EWIN_PROP_READ_INDEXED_OR_SUB_VALUE(n, t, indexed_target_info_type, i, a)

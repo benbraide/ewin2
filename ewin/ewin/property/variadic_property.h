@@ -102,12 +102,12 @@ namespace ewin::property{
 
 		variadic(variadic &&target) noexcept
 			: managed_type(std::move(target)){
-			move_(target);
+			move_(std::move(target));
 		}
 
 		variadic &operator =(variadic &&target) noexcept{
 			managed_type::operator=(std::move(target));
-			move_(target);
+			move_(std::move(target));
 			return *this;
 		}
 
