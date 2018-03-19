@@ -79,7 +79,9 @@ namespace ewin::property{
 	protected:
 		friend manager_type;
 
-		point() = default;
+		point(){
+			init_();
+		}
 
 		explicit point(typename value_prop_type::callback_type callback)
 			: value_prop_type(callback){
@@ -97,7 +99,9 @@ namespace ewin::property{
 		}
 
 		point(point &&target)
-			: value_prop_type(std::move(target)){}
+			: value_prop_type(std::move(target)){
+			init_();
+		}
 
 		point &operator =(point &&target){
 			value_prop_type::operator=(std::move(target));

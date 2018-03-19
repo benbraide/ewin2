@@ -82,7 +82,9 @@ namespace ewin::property{
 	protected:
 		friend manager_type;
 
-		rect() = default;
+		rect(){
+			init_();
+		}
 
 		explicit rect(typename value_prop_type::callback_type callback)
 			: value_prop_type(callback){
@@ -100,7 +102,9 @@ namespace ewin::property{
 		}
 
 		rect(rect &&target)
-			: value_prop_type(std::move(target)){}
+			: value_prop_type(std::move(target)){
+			init_();
+		}
 
 		rect &operator =(rect &&target){
 			value_prop_type::operator=(std::move(target));

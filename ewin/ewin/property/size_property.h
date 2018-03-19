@@ -79,7 +79,9 @@ namespace ewin::property{
 	protected:
 		friend manager_type;
 
-		size() = default;
+		size(){
+			init_();
+		}
 
 		explicit size(typename value_prop_type::callback_type callback)
 			: value_prop_type(callback){
@@ -97,7 +99,9 @@ namespace ewin::property{
 		}
 
 		size(size &&target)
-			: value_prop_type(std::move(target)){}
+			: value_prop_type(std::move(target)){
+			init_();
+		}
 
 		size &operator =(size &&target){
 			value_prop_type::operator=(std::move(target));
