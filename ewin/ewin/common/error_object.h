@@ -6,8 +6,6 @@
 #include <string>
 #include <variant>
 
-#include "../property/variadic_property.h"
-
 #include "windows_headers.h"
 #include "error.h"
 
@@ -39,95 +37,74 @@ namespace ewin::common{
 		> value_type;
 
 		error_object()
-			: value_(error::nil), policy_(error_throw_policy_type::throw_always){
-			init_();
-		}
+			: value_(error::nil), policy_(error_throw_policy_type::throw_always){}
 
 		error_object(const error_object &) = delete;
 
 		error_object &operator =(const error_object &target) = delete;
 
 		error_object(error_object &&target)
-			: value_(std::move(target.value_)), policy_(target.policy_), text_(std::move(target.text_)), prop_(std::move(target.prop_)){
-			init_();
-		}
+			: value_(std::move(target.value_)), policy_(target.policy_), text_(std::move(target.text_)){}
 
 		error_object &operator =(error_object &&target){
 			value_ = std::move(target.value_);
-			policy_ = target.policy_;
 
+			policy_ = target.policy_;
 			text_ = std::move(target.text_);
-			prop_ = std::move(target.prop_);
 
 			return *this;
 		}
 
-		template <typename target_type>
-		operator target_type() const{
-			return prop_.operator target_type();
+		operator error() const{
+			return get_error_();
 		}
 
-		template <typename target_type>
-		error_object &operator =(const target_type &target){
-			prop_.operator=(target);
+		operator DWORD() const{
+			return get_local_error_();
+		}
+
+		operator HRESULT() const{
+			return get_status_error_();
+		}
+
+		operator error_throw_policy_type() const{
+			return policy_;
+		}
+
+		operator const std::wstring &() const{
+			if (text_.empty())
+				error_to_string_();
+			return text_;
+		}
+
+		operator bool() const{
+			return (get_error_() != error::nil);
+		}
+
+		error_object &operator =(error value){
+			return assign_(value);
+		}
+
+		error_object &operator =(DWORD value){
+			return assign_(value);
+		}
+
+		error_object &operator =(HRESULT value){
+			return assign_(value);
+		}
+
+		error_object &operator =(error_throw_policy_type value){
+			policy_ = value;
 			return *this;
 		}
 
 	private:
-		void init_(){
-			prop_.set_ref_(&policy_);
-			prop_.set_ref_(&text_);
-			prop_.set_manager_([this](void *prop, void *arg, property::object::access_type access){
-				if (EWIN_IS(access, property::object::access_type::validate))
-					return;
-
-				auto info = static_cast<property::object::indexed_target_info_type *>(arg);
-				if (EWIN_IS(access, property::object::access_type::write)){
-					if (EWIN_IS(access, property::object::access_type::alert))
-						return;
-
-					text_.clear();
-					switch (info->index){
-					case property_type::variadic_type_list_type::index<error>:
-						value_ = *static_cast<error *>(info->target);
-						break;
-					case property_type::variadic_type_list_type::index<DWORD>:
-						value_ = *static_cast<DWORD *>(info->target);
-						break;
-					case property_type::variadic_type_list_type::index<HRESULT>:
-						value_ = *static_cast<HRESULT *>(info->target);
-						break;
-					default:
-						break;
-					}
-
-					throw_(get_error_());
-				}
-				else if (EWIN_IS(access, property::object::access_type::read)){
-					if (EWIN_IS(access, property::object::access_type::alert)){
-						if (prop_.current_ == property_type::variadic_type_list_type::index<std::wstring>)
-							error_to_string_();
-						return;
-					}
-
-					switch (info->index){
-					case property_type::variadic_type_list_type::index<error>:
-						*static_cast<error *>(info->target) = get_error_();
-						break;
-					case property_type::variadic_type_list_type::index<DWORD>:
-						*static_cast<DWORD *>(info->target) = get_local_error_();
-						break;
-					case property_type::variadic_type_list_type::index<HRESULT>:
-						*static_cast<HRESULT *>(info->target) = get_status_error_();
-						break;
-					case property_type::variadic_type_list_type::index<bool>:
-						*static_cast<bool *>(info->target) = (get_error_() != error::nil);
-						break;
-					default:
-						break;
-					}
-				}
-			});
+		template <typename target_type>
+		error_object &assign_(target_type target){
+			value_ = target;
+			text_.clear();
+			throw_(get_error_());
+			return *this;
 		}
 
 		error get_error_() const{
@@ -163,7 +140,7 @@ namespace ewin::common{
 			return S_OK;
 		}
 
-		void error_to_string_(){
+		void error_to_string_() const{
 			switch (get_error_()){
 			case error::nil:
 				text_ = L"Success";
@@ -188,15 +165,15 @@ namespace ewin::common{
 			}
 		}
 
-		void local_error_to_string_(){
+		void local_error_to_string_() const{
 			code_to_string_(std::get<DWORD>(value_));
 		}
 
-		void status_error_to_string_(){
+		void status_error_to_string_() const{
 			code_to_string_(HRESULT_CODE(std::get<HRESULT>(value_)));
 		}
 
-		void code_to_string_(DWORD code){
+		void code_to_string_(DWORD code) const{
 			void *allocated_buffer = nullptr;
 			auto count = FormatMessageW(
 				FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -234,8 +211,7 @@ namespace ewin::common{
 
 		value_type value_;
 		error_throw_policy_type policy_;
-		std::wstring text_;
-		property_type prop_;
+		mutable std::wstring text_;
 	};
 }
 

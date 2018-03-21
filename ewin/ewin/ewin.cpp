@@ -25,7 +25,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		eval = *e;
 		dwe = *e;
 		hr = *e;
-		swe = e->operator std::wstring();
+		swe = *e;
 	}
 
 	struct man{
