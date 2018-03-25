@@ -11,6 +11,7 @@ namespace ewin::common{
 		property_forbidden,
 		local_error,
 		status_error,
+		change_rejected,
 	};
 }
 

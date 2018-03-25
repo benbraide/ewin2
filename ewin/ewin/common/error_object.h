@@ -10,25 +10,17 @@
 #include "error.h"
 
 namespace ewin::common{
+	template <class owner_type>
 	class error_object{
 	public:
+		typedef owner_type owner_type;
+
 		enum class error_throw_policy_type{
 			throw_always,
 			throw_once,
 			no_throw_once,
 			no_throw,
 		};
-
-		typedef property::variadic<
-			error_object,
-			property::object::access_type::nil,
-			error,
-			DWORD,
-			HRESULT,
-			error_throw_policy_type,
-			std::wstring,
-			bool
-		> property_type;
 
 		typedef std::variant<
 			error,
@@ -99,10 +91,17 @@ namespace ewin::common{
 		}
 
 	private:
+		friend owner_type;
+
 		template <typename target_type>
-		error_object &assign_(target_type target){
+		void silent_assign_(target_type target){
 			value_ = target;
 			text_.clear();
+		}
+
+		template <typename target_type>
+		error_object &assign_(target_type target){
+			silent_assign_(target);
 			throw_(get_error_());
 			return *this;
 		}
@@ -153,6 +152,9 @@ namespace ewin::common{
 				break;
 			case error::property_forbidden:
 				text_ = L"Property forbidden";
+				break;
+			case error::change_rejected:
+				text_ = L"Change rejected";
 				break;
 			case error::local_error:
 				local_error_to_string_();
